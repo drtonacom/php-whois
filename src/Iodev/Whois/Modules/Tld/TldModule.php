@@ -201,6 +201,15 @@ class TldModule extends Module
     {
         try {
             $outResponse = $this->loadResponse($server, $domain, $strict, $host);
+
+            $reserved_substr = "This name is reserved by the Registry in accordance with ICANN Policy.";
+            $substr_in = str_contains($outResponse->text, $reserved_substr);
+            if ($substr_in){
+                $outResponse = null;
+                $outInfo = null;
+                return;
+            }
+            
             $outInfo = $server->getParser()->parseResponse($outResponse);
         } catch (ConnectionException $e) {
             $lastError = $lastError ?: $e;
