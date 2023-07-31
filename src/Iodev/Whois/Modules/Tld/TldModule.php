@@ -203,7 +203,7 @@ class TldModule extends Module
             $outResponse = $this->loadResponse($server, $domain, $strict, $host);
 
             $reserved_substr = "This name is reserved by the Registry in accordance with ICANN Policy.";
-            $substr_in = str_contains($outResponse->text, $reserved_substr);
+            $substr_in = strpos($outResponse->text, $reserved_substr) !== false;
             if ($substr_in){
                 $outResponse = null;
                 $outInfo = null;
