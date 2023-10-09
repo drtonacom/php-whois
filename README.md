@@ -4,7 +4,7 @@
 [![Packagist](https://img.shields.io/packagist/v/io-developer/php-whois.svg)](https://packagist.org/packages/io-developer/php-whois)
 
 PHP WHOIS client implementation. Sends the queries directly to the WHOIS services.
-////
+//
 ## Use case
  * Raw and parsed domain lookup
  * Raw and parsed ASN routes lookup
