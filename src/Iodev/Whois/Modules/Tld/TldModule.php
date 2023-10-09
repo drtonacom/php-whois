@@ -199,11 +199,14 @@ class TldModule extends Module
      */
     protected function loadParsedTo(&$outResponse, &$outInfo, $server, $domain, $strict = false, $host = null, &$lastError = null)
     {
+        $tld = explode('.',$domain);
+        $tld = $tld && count($tld)>1 ? $tld[count($tld)-1] : "n\a";
         try {
             $outResponse = $this->loadResponse($server, $domain, $strict, $host);
 
             $this->saveReport([
                 date('d.m.Y H:i:s'),
+                $tld,
                 $domain,
                 "Ok",
                 $outResponse->text
@@ -221,6 +224,7 @@ class TldModule extends Module
         } catch (ConnectionException $e) {
             $this->saveReport([
                 date('d.m.Y H:i:s'),
+                $tld,
                 $domain,
                 "Fail",
                 $e->getMessage()
