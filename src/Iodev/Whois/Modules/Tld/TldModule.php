@@ -202,6 +202,13 @@ class TldModule extends Module
         try {
             $outResponse = $this->loadResponse($server, $domain, $strict, $host);
 
+            $this->saveReport([
+                date('d.m.Y H:i:s'),
+                $domain,
+                "Ok",
+                $outResponse->text
+            ]);
+
             $reserved_substr = "This name is reserved by the Registry in accordance with ICANN Policy.";
             $substr_in = strpos($outResponse->text, $reserved_substr) !== false;
             if ($substr_in){
@@ -212,6 +219,12 @@ class TldModule extends Module
             
             $outInfo = $server->getParser()->parseResponse($outResponse);
         } catch (ConnectionException $e) {
+            $this->saveReport([
+                date('d.m.Y H:i:s'),
+                $domain,
+                "Fail",
+                $e->getMessage()
+            ]);
             $lastError = $lastError ?: $e;
         }
         if (!$outInfo && $lastError && $host == $server->getHost() && $strict) {
@@ -230,6 +243,38 @@ class TldModule extends Module
             $this->loadParsedTo($tmpResponse, $tmpInfo, $server, $domain, false, $host, $lastError);
             $outResponse = $tmpInfo ? $tmpResponse : $outResponse;
             $outInfo = $tmpInfo ?: $outInfo;
+        }
+    }
+
+    protected function saveReport($data)
+    {
+        try {
+            if (!defined('WP_CONTENT_DIR') || !is_dir(WP_CONTENT_DIR)) {
+                throw new \Exception('WP_CONTENT_DIR не определена или не является директорией');
+            }
+            $maxFileSizeMB = 64;
+            $filename = WP_CONTENT_DIR."/domainplugin/reports/report.csv";
+            if (file_exists($filename)) {
+                // Получаем размер файла в байтах
+                $fileSize = filesize($filename);
+                // Если размер файла превышает максимальный размер
+                if ($fileSize >= $maxFileSizeMB * 1024 * 1024) {
+                    // Прочитаем старые данные из файла
+                    $oldData = file($filename, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+                    // Удаляем старые данные, оставив только последние N строк
+                    $newData = array_slice($oldData, -$maxFileSizeMB * 1024);
+                    // Открываем файл для записи и перезаписываем его
+                    $file = fopen($filename, 'w');
+                    fwrite($file, implode("\n", $newData));
+                    fclose($file);
+                }
+            }
+
+            $file = fopen($filename, 'a');
+            fputcsv($file, $data);
+            fclose($file);
+        }catch (\Exception $e){
+
         }
     }
 }
